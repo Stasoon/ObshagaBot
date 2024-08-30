@@ -28,6 +28,10 @@ async def handle_subcategory_callback(callback: CallbackQuery, state: FSMContext
 
 async def handle_new_content(message: Message, state: FSMContext):
     subcategory_code = (await state.get_data()).get('subcategory_code')
+    if not subcategory_code:
+        await message.answer(text='Отменено', reply_markup=AdminKeyboards.get_admin_menu())
+        await state.clear()
+        return
 
     if subcategory_content := SubcategoryContent.get_or_none(subcategory=subcategory_code):
         subcategory_content.message_id = message.message_id

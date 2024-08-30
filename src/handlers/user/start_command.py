@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
-from aiogram.filters import CommandStart
+from aiogram.types import Message, CallbackQuery, ChatMemberUpdated
+from aiogram.filters import CommandStart, ChatMemberUpdatedFilter, KICKED
 
 from src.keyboards.user import UserKeyboards
 from src.messages.user import UserMessages
@@ -15,9 +15,11 @@ async def handle_start_command(message: Message, state: FSMContext):
     user = message.from_user
     _, user = create_or_update_user(telegram_id=user.id, firstname=user.first_name, username=user.username)
 
+    if not user.is_registration_passed:
+        await message.answer(UserMessages.get_welcome(user_name=user.name))
+
     not_subscribed_channels = await get_not_subscribed_channels(bot=message.bot, user_id=user.telegram_id)
     if not_subscribed_channels:
-        await message.answer(UserMessages.get_welcome(user_name=user.name))
         await message.answer(
             text=UserMessages.get_ask_for_subscribe(),
             reply_markup=UserKeyboards.get_check_subscription(not_subscribed_channels)
@@ -55,8 +57,16 @@ async def start(bot, user: User):
     await bot.send_message(chat_id=user.telegram_id, text=text, reply_markup=markup)
 
 
+async def handle_bot_blocked(update: ChatMemberUpdated):
+    user = get_user_or_none(update.from_user.id)
+    user.is_bot_blocked = True
+    user.save()
+
+
 def register_start_command_handler(router: Router):
     # Команда /start
     router.message.register(handle_start_command, CommandStart())
 
     router.callback_query.register(handle_check_subscription, F.data == 'check_subscription')
+
+    router.my_chat_member.register(handle_bot_blocked, ChatMemberUpdatedFilter(member_status_changed=KICKED))

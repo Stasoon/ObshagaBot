@@ -82,12 +82,11 @@ class UserKeyboards:
         return builder.as_markup(resize_keyboard=True, is_persistent=True)
 
     @staticmethod
-    def get_category(category: Category) -> InlineKeyboardMarkup:
+    def get_category(subcategories: list[Subcategory]) -> InlineKeyboardMarkup:
         builder = InlineKeyboardBuilder()
-        subcategories = Subcategory.select().where(Subcategory.category == category)
 
-        for s in subcategories:
-            builder.button(text=s.title, callback_data=SubcategoryCallback(code=s.id))
+        for n, s in enumerate(subcategories, start=1):
+            builder.button(text=f"{s.title}", callback_data=SubcategoryCallback(code=s.id))
 
         builder.adjust(1)
         return builder.as_markup()

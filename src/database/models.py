@@ -46,13 +46,14 @@ class User(_BaseModel):
     last_activity = DateTimeField(default=datetime.now)
     registration_timestamp = DateTimeField(default=datetime.now)
     is_registration_passed = BooleanField(default=False)
+    is_bot_blocked = BooleanField(default=False)
 
 
 class StudentData(_BaseModel):
     class Meta:
         db_table = 'students_data'
 
-    user = ForeignKeyField(model=User, primary_key=True)
+    user = ForeignKeyField(model=User, primary_key=True, on_delete='CASCADE')
     name = CharField()
     city = CharField()
     university = CharField()
@@ -68,7 +69,6 @@ class Category(_BaseModel):
 
     code_name = CharField(primary_key=True)
     title = CharField()
-    # description = TextField(null=True)
 
 
 class Subcategory(_BaseModel):
@@ -77,7 +77,6 @@ class Subcategory(_BaseModel):
 
     id = AutoField()
     category = ForeignKeyField(model=Category)
-    # code_name = CharField()
     title = CharField()
 
 

@@ -17,6 +17,7 @@ def create_or_update_user(
     if user:
         user.name = firstname
         user.username = username
+        user.is_bot_blocked = False
         user.save()
         return False, user
     else:
